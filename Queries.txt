@@ -1,0 +1,188 @@
+-- Find all employees of this company 
+
+USE multinational_company;
+
+SELECT*
+FROM employee;
+-- Find All clients
+
+SELECT*
+FROM client;
+-- Find all employees ordered by their salary to lowest to highest
+
+SELECT *
+FROM employee
+ORDER BY salary ASC ;
+-- Find all employee order by their first name and then then sex in desending order 
+
+SELECT*
+FROM employee
+ORDER BY first_name DESC ,sex DESC;
+-- Find the first 10 employees of the table 
+
+SELECT*
+FROM employee
+LIMIT 10 ;
+-- Find the surname of all employees with their employee id
+
+SELECT  emp_id, last_name AS surname 
+FROM employee ;
+-- Find out all the different genders 
+
+SELECT DISTINCT sex
+FROM employee;
+-- Find all male employee 
+
+SELECT*
+FROM employee
+WHERE sex='M' ;
+-- Find all employee's id's and names who were born after 1990
+
+SELECT *
+FROM employee
+WHERE birth_day >='1991-01-01';
+-- Find all femele employees at first branch
+
+SELECT*
+FROM employee
+WHERE branch_id=1 AND sex='F' ;
+
+-- Find all employess who are femele and born after 1990 or who make over 70000 
+
+SELECT*
+FROM employee
+WHERE sex='F'AND (birth_day >='1991-01-01' OR salary >70000);
+-- Find all employees born between 1970 and 1990 
+
+SELECT*
+FROM employee
+WHERE birth_day BETWEEN '1970-01-01' AND '1990-01-01' ;
+
+FUNCTIONS 
+
+- Find the number of employees 
+
+SELECT COUNT(emp_id) AS 'Total Employee' 
+FROM employee ;
+-- Find the average of all employee's salary
+
+SELECT AVG(salary) AS 'Average salary'
+FROM employee;
+-- Find the sum of all employees salaries
+
+SELECT SUM(salary) AS 'Total Salary' 
+FROM employee
+-- Find out how many males and femeles employee in this company
+
+SELECT sex, COUNT(sex) AS TOTAL 
+FROM employee
+GROUP BY sex ;
+-- Find the total sales of each salesman
+
+SELECT emp_id, SUM(total_sales) AS 'Total Sales'
+FROM works_with 
+GROUP BY client_id ;
+-- Find the total number of money spent by each client
+
+SELECT client_id , SUM(total_sales) AS 'Money Spent'
+FROM works_with 
+GROUP BY client_id ;
+
+LIKE CLAUSE 
+-- Find any client's who are an Khan 
+
+SELECT*
+FROM client
+WHERE client_name LIKE '%khan' ;
+-- Find any branch suppliers who are in the ‘trade international’ business 
+
+SELECT*
+FROM branch_supplier
+WHERE supplier_name LIKE '%trade international'
+
+
+Regular Expression Clause
+-- GET the employees whose first name are Walter or John 
+
+SELECT*
+FROM employee
+WHERE first_name REGEXP 'Walter|John'
+-- Get the employees last name start with 'wa or contains se ' 
+
+SELECT*
+FROM employee
+WHERE last_name REGEXP '^wa|se'
+-- Get the employees whose last name contains w followed by a or l
+
+SELECT*
+FROM employee
+WHERE last_name REGEXP 'w[al]'
+
+JOIN Clause
+-- JOIN the employee table with the works_with table and show total sales by the employee with their names
+
+SELECT em.emp_id, em.first_name, em.last_name, ww.total_sales
+FROM employee em
+JOIN works_with ww 
+         ON em.emp_id =ww.emp_id
+-- Find all the managers 
+
+SELECT e.emp_id ,e.first_name , m.first_name AS Manager 
+FROM employee e
+JOIN employee m
+         ON e.super_id = m.emp_id
+            
+
+UNION 
+
+-- Find a list of employee and branch names 
+
+SELECT employee.first_name AS 'Employee Branch Name'
+FROM employee
+UNION 
+SELECT branch.branch_name
+FROM branch ;
+
+-- Find a list of all 'clients and branch supliers' name 
+
+SELECT client.client_name AS 'Non-Employee Entities' ,client.branch_id AS 'Branch ID'
+FROM client 
+UNION 
+SELECT branch_supplier.supplier_name , branch_supplier.branch_id 
+FROM branch_supplier
+
+NESTED QUIRIES
+
+-- Find names of all employees who have sold over 100
+SELECT employee.first_name , employee.last_name
+FROM employee
+WHERE employee.emp_id IN( SELECT works_with.emp_id
+			           FROM works_with
+                                                      WHERE works_with.total_sales>100 ) ;
+-- Find all clients who are handles by the branch that David Wallace manages 
+-- Assume you know David Wallace's ID 
+
+SELECT client.client_id ,client.client_name
+FROM client 
+WHERE client.branch_id = (SELECT branch.branch_id
+		                   FROM branch 
+                                                WHERE branch.mgr_id =100);
+-- Find all clients who are handles by the branch that David Wallace manages 
+-- Assume you don't know David Wallace's ID 
+
+SELECT client.client_id, client.client_name
+FROM client 
+WHERE client.branch_id =(SELECT branch.branch_id 
+                                                FROM branch
+                                                WHERE branch.mgr_id= (SELECT employee.emp_id
+	                                                                               FROM employee
+                                                                                              WHERE employee.first_name='David' AND 
+                                                                                                                   employee.last_name='Wallace'
+                                                                                              LIMIT 1 ));
+-- Find the names of employees who work with clients handled by the 'Khan & Sons' Branch
+
+SELECT employee.first_name ,employee.last_name
+FROM employee
+WHERE employee.emp_id IN ( SELECT works_with.emp_id
+                                                       FROM works_with )
+              AND employee.branch_id=2;                     
